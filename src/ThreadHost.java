@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ThreadHost implements Runnable {
     String host;
     ArrayList<String> availableHosts;
-    Boolean deploy = false;
+    String action;
 
     /**
      * for getting available hosts list
@@ -18,6 +18,7 @@ public class ThreadHost implements Runnable {
     ThreadHost(String host, ArrayList availableHosts) {
         this.host = host;
         this.availableHosts = availableHosts;
+        this.action = "test";
     }
 
     /**
@@ -25,26 +26,35 @@ public class ThreadHost implements Runnable {
      *
      * @param host host name
      */
-    ThreadHost(String host) {
+    ThreadHost(String host, String action) {
         this.host = host;
-        this.deploy = true;
+        this.action = action;
     }
 
     @Override
     public void run() {
         try {
-            if (this.deploy) {
-                deploySlave(this.host);
-            } else if (testHosts(this.host)) {
-                this.availableHosts.add(this.host);
+            switch (this.action) {
+                case "test":
+                    if (testHosts(this.host)) {
+                        this.availableHosts.add(this.host);
+                    }
+                    break;
+                case "deploy":
+                    deploySlave(this.host);
+                    break;
+                case "clean":
+                    clean(this.host);
+                    break;
+                default:
+                    throw new Exception("unknown thread action");
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     *
      * @param host host name
      * @return Boolean if the host available
      * @throws IOException
@@ -58,7 +68,6 @@ public class ThreadHost implements Runnable {
     }
 
     /**
-     *
      * @param host host name
      * @throws IOException
      * @throws InterruptedException
@@ -71,5 +80,19 @@ public class ThreadHost implements Runnable {
         Process pDeploy = pbDeploy.start();
         pDeploy.waitFor();
         System.out.println("slave deployed on host " + host);
+    }
+
+    /**
+     * clean slave on the host
+     *
+     * @param host host name
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private static void clean(String host) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("ssh", host, "rm -rf " + DeployP.tmpPath);
+        Process p = pb.start();
+        p.waitFor();
+        System.out.println(Deploy.tmpPath + " is removed on host " + host);
     }
 }

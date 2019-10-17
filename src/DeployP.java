@@ -18,7 +18,7 @@ public class DeployP {
     /**
      * get available hosts
      */
-    private static ArrayList getAvailableHosts(String filename) {
+    public static ArrayList getAvailableHosts(String filename) {
         List<String> lines = null;
         ArrayList<String> availableHosts = new ArrayList<>();
         try {
@@ -49,7 +49,7 @@ public class DeployP {
     private static void deploySlaves(ArrayList<String> hosts) throws InterruptedException {
         ArrayList<Thread> allThreads = new ArrayList<>();
         for (String host : hosts) {
-            Thread threadHost = new Thread(new ThreadHost(host));
+            Thread threadHost = new Thread(new ThreadHost(host, "deploy"));
             threadHost.start();
             allThreads.add(threadHost);
         }
