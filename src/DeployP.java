@@ -1,11 +1,8 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class DeployP {
     public static void main(String[] args) throws IOException {
@@ -21,11 +18,16 @@ public class DeployP {
         ArrayList<String> availableHosts = new ArrayList<String>();
         try {
             lines = Files.readAllLines(Paths.get(filename));
+            ArrayList<Thread> allThreads = new ArrayList<Thread>();
             for (String host : lines) {
                 Thread threadHost = new Thread(new ThreadHost(host, availableHosts));
                 threadHost.start();
+                allThreads.add(threadHost);
             }
-        } catch (IOException e) {
+            for (Thread thread : allThreads) {
+                thread.join();
+            }
+        } catch (IOException | InterruptedException e) {
             System.out.println("Erreur lors de la lecture de " + filename);
             System.exit(1);
         }
