@@ -5,9 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeployP {
-    public static void main(String[] args) throws IOException {
+    static String tmpPath = "/tmp/xu/";
+    static String slaveJarName = "slave.jar";
+    static String hostFile = "files/hostList.txt";
+
+    public static void main(String[] args) throws IOException, InterruptedException {
         ArrayList availableHosts = getAvailableHosts("files/hostList.txt");
         System.out.println(availableHosts);
+        deploySlaves(availableHosts);
     }
 
     /**
@@ -15,10 +20,10 @@ public class DeployP {
      */
     private static ArrayList getAvailableHosts(String filename) {
         List<String> lines = null;
-        ArrayList<String> availableHosts = new ArrayList<String>();
+        ArrayList<String> availableHosts = new ArrayList<>();
         try {
             lines = Files.readAllLines(Paths.get(filename));
-            ArrayList<Thread> allThreads = new ArrayList<Thread>();
+            ArrayList<Thread> allThreads = new ArrayList<>();
             for (String host : lines) {
                 Thread threadHost = new Thread(new ThreadHost(host, availableHosts));
                 threadHost.start();
@@ -33,5 +38,24 @@ public class DeployP {
         }
 
         return availableHosts;
+    }
+
+    /**
+     * deploy slave on the hosts
+     *
+     * @param hosts host list
+     * @throws InterruptedException
+     */
+    private static void deploySlaves(ArrayList<String> hosts) throws InterruptedException {
+        ArrayList<Thread> allThreads = new ArrayList<>();
+        for (String host : hosts) {
+            Thread threadHost = new Thread(new ThreadHost(host));
+            threadHost.start();
+            allThreads.add(threadHost);
+        }
+        for (Thread thread : allThreads) {
+            thread.join();
+        }
+        System.out.println("deploy finish");
     }
 }
