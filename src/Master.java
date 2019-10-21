@@ -39,12 +39,12 @@ public class Master {
      * @throws InterruptedException
      */
     static void deploySplits() throws InterruptedException {
-        ArrayList<String> availableHosts = DeployP.getAvailableHosts("files/hostList.txt");
+        ArrayList<String> availableHosts = DeployP.getAvailableHosts(DeployP.hostFile);
         System.out.println(availableHosts);
         int i = 0;
         ArrayList<Thread> allThreads = new ArrayList<>();
         for (String host : availableHosts) {
-            Thread threadHost = new Thread(new ThreadHost(host, "deployFile", "/tmp/xu/splits/", "S" + i + ".txt"));
+            Thread threadHost = new Thread(new ThreadHost(host, "deployFile", DeployP.tmpPath + "splits/", "S" + i + ".txt"));
             threadHost.start();
             allThreads.add(threadHost);
             i++;
