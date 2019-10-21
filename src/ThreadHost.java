@@ -2,12 +2,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class ThreadHost implements Runnable {
     String host;
     ArrayList<String> availableHosts;
     String action;
+    String path;
+    String fileName;
 
     /**
      * for getting available hosts list
@@ -22,13 +23,25 @@ public class ThreadHost implements Runnable {
     }
 
     /**
-     * for deploy
+     * for deploy slaves
      *
      * @param host host name
      */
     ThreadHost(String host, String action) {
         this.host = host;
         this.action = action;
+    }
+
+    /**
+     * for deploy files
+     *
+     * @param host host name
+     */
+    ThreadHost(String host, String action, String path, String fileName) {
+        this.host = host;
+        this.action = action;
+        this.path = path;
+        this.fileName = fileName;
     }
 
     @Override
@@ -40,8 +53,11 @@ public class ThreadHost implements Runnable {
                         this.availableHosts.add(this.host);
                     }
                     break;
-                case "deploy":
+                case "deploySlave":
                     deploySlave(this.host);
+                    break;
+                case "deployFile":
+                    deployFile(this.host, this.path, this.fileName);
                     break;
                 case "clean":
                     clean(this.host);
@@ -80,6 +96,23 @@ public class ThreadHost implements Runnable {
         Process pDeploy = pbDeploy.start();
         pDeploy.waitFor();
         System.out.println("slave deployed on host " + host);
+    }
+
+    /**
+     * deploy spile file
+     *
+     * @param host host name
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private static void deployFile(String host, String path, String fileName) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("ssh", host, "mkdir -p " + path);
+        Process p = pb.start();
+        p.waitFor();
+        ProcessBuilder pbDeploy = new ProcessBuilder("scp", path + fileName, host + ":" + path + fileName);
+        Process pDeploy = pbDeploy.start();
+        pDeploy.waitFor();
+        System.out.println(path + fileName + " deployed on host " + host);
     }
 
     /**
